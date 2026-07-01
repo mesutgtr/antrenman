@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SAHA — Ev Antrenmanı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0F0E0C;
+    --surface: #1B1916;
+    --surface-2: #242119;
+    --line: #35312A;
+    --ink: #F3EFE6;
+    --ink-dim: #A39C8C;
+    --accent: #FF4E1F;
+    --accent-dim: #7A2E14;
+    --go: #C6FF3D;
+    --go-dim: #3E4A15;
+    --rest: #4FA8FF;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; overflow-x:hidden;}
+  body{ padding: 18px 16px 40px; min-height:100vh; }
+  h1,h2,h3{ font-family:'Bebas Neue', sans-serif; letter-spacing: 0.02em; margin:0; }
+  .mono{ font-family:'Space Mono', monospace; }
+
+  /* ---------- HEADER ---------- */
+  .topbar{ display:flex; align-items:baseline; justify-content:space-between; padding: 4px 2px 20px; border-bottom: 1px solid var(--line); margin-bottom: 22px;}
+  .brand{ font-size: 34px; line-height:1; color:var(--ink); }
+  .brand span{ color:var(--accent); }
+  .tag{ font-size:11px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.14em; }
+
+  /* ---------- STATS STRIP ---------- */
+  .stats{ display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-bottom:26px; }
+  .stat{ background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px 10px; text-align:center; }
+  .stat .num{ font-family:'Bebas Neue'; font-size:30px; color:var(--go); line-height:1; }
+  .stat .lbl{ font-size:10px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.08em; margin-top:4px;}
+
+  /* ---------- DAY LIST ---------- */
+  .section-lbl{ font-size:11px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.16em; margin: 0 2px 10px; display:flex; justify-content:space-between; }
+  .days{ display:flex; flex-direction:column; gap:10px; margin-bottom: 8px;}
+  .day-card{ position:relative; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px; display:flex; align-items:center; gap:14px; cursor:pointer; transition: border-color .15s, transform .1s; overflow:hidden;}
+  .day-card:active{ transform: scale(0.98); }
+  .day-card.today{ border-color: var(--accent); }
+  .day-card.done{ opacity:0.55; }
+  .day-num{ font-family:'Bebas Neue'; font-size:38px; color:var(--ink-dim); width:44px; flex-shrink:0; }
+  .day-card.today .day-num{ color:var(--accent); }
+  .day-info{ flex:1; min-width:0; }
+  .day-title{ font-size:18px; font-weight:700; margin-bottom:2px; }
+  .day-meta{ font-size:12px; color:var(--ink-dim); display:flex; gap:8px; flex-wrap:wrap; }
+  .day-meta b{ color: var(--ink); font-weight:600;}
+  .today-pill{ font-size:9px; background:var(--accent); color:#1a0a04; padding:3px 7px; border-radius:20px; text-transform:uppercase; letter-spacing:0.06em; font-weight:800; flex-shrink:0; }
+  .check{ width:22px; height:22px; border-radius:50%; border:2px solid var(--line); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px;}
+  .day-card.done .check{ background:var(--go); border-color:var(--go); color:#1a1a1a; }
+
+  .note{ font-size:12px; color:var(--ink-dim); line-height:1.6; padding:14px; background:var(--surface); border-radius:12px; margin-top:20px; border-left:3px solid var(--accent-dim); }
+  .note b{ color: var(--ink); }
+
+  /* ---------- TABS ---------- */
+  .tabs{ display:flex; gap:8px; margin-bottom:22px; }
+  .tab-btn{ flex:1; padding:11px; border-radius:11px; border:1px solid var(--line); background:var(--surface); color:var(--ink-dim); font-family:'Bebas Neue'; font-size:16px; letter-spacing:0.06em; }
+  .tab-btn.active{ background:var(--accent); border-color:var(--accent); color:#1a0a04; }
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  /* ---------- NUTRITION ---------- */
+  .macro-card{ background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:18px; }
+  .macro-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px; }
+  .macro-head .kcal{ font-family:'Bebas Neue'; font-size:44px; color:var(--go); line-height:1; }
+  .macro-head .kcal small{ font-family:'Inter'; font-size:12px; color:var(--ink-dim); font-weight:600; }
+  .day-type-pill{ font-size:10px; text-transform:uppercase; letter-spacing:0.08em; padding:5px 10px; border-radius:20px; border:1px solid var(--accent); color:var(--accent); font-weight:700; }
+  .macro-bars{ display:flex; gap:10px; }
+  .macro-item{ flex:1; text-align:center; }
+  .macro-item .mv{ font-family:'Space Mono'; font-size:18px; font-weight:700; }
+  .macro-item .ml{ font-size:10px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.06em; margin-top:2px; }
+  .macro-item.p .mv{ color:var(--accent); }
+  .macro-item.c .mv{ color:var(--rest); }
+  .macro-item.f .mv{ color:var(--go); }
+
+  .meals{ display:flex; flex-direction:column; gap:10px; }
+  .meal-card{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px 16px; }
+  .meal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .meal-time{ font-size:10px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.08em; }
+  .meal-kcal{ font-family:'Space Mono'; font-size:13px; color:var(--go); font-weight:700; }
+  .meal-name{ font-size:15px; font-weight:700; margin-bottom:4px; }
+  .meal-items{ font-size:12.5px; color:var(--ink-dim); line-height:1.6; }
+
+  /* ---------- WORKOUT SCREEN ---------- */
+  .screen{ position:fixed; inset:0; background:var(--bg); z-index:50; display:none; flex-direction:column; padding: env(safe-area-inset-top,16px) 18px calc(env(safe-area-inset-bottom,16px) + 16px); }
+  .screen.active{ display:flex; }
+  .w-head{ display:flex; align-items:center; justify-content:space-between; padding-top:10px; }
+  .close-btn{ background:none; border:1px solid var(--line); color:var(--ink-dim); width:34px; height:34px; border-radius:50%; font-size:16px; }
+  .w-title{ font-size:13px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.12em; }
+  .round-pill{ font-size:11px; color:var(--ink); background:var(--surface); border:1px solid var(--line); padding:5px 10px; border-radius:20px; }
+
+  .ring-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 22px; }
+  .ring-box{ position:relative; width:min(72vw,290px); height:min(72vw,290px); }
+  .ring-box svg{ width:100%; height:100%; transform: rotate(-90deg); }
+  .ring-bg{ fill:none; stroke: var(--surface-2); stroke-width:10; }
+  .ring-fg{ fill:none; stroke: var(--go); stroke-width:10; stroke-linecap:round; transition: stroke .2s; }
+  .ring-fg.rest-mode{ stroke: var(--rest); }
+  .ring-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .phase-lbl{ font-size:12px; letter-spacing:0.2em; text-transform:uppercase; color: var(--go); font-weight:700; }
+  .phase-lbl.rest-mode{ color: var(--rest); }
+  .time-num{ font-family:'Bebas Neue'; font-size:76px; line-height:1; margin-top:2px; }
+
+  .ex-name{ font-size: 30px; text-align:center; max-width:320px; line-height:1.05; }
+  .ex-next{ font-size:13px; color:var(--ink-dim); text-align:center; }
+  .ex-next b{ color:var(--ink); }
+
+  .w-controls{ display:flex; gap:12px; padding-top: 10px; }
+  .btn{ flex:1; padding:16px; border-radius:14px; border:none; font-family:'Bebas Neue'; font-size:20px; letter-spacing:0.04em; }
+  .btn-ghost{ background:var(--surface); color:var(--ink); border:1px solid var(--line); }
+  .btn-main{ background:var(--accent); color:#1a0a04; flex:1.4; }
+  .btn-main.pause{ background: var(--surface); color:var(--ink); border:1px solid var(--accent); }
+
+  /* ---------- DONE SCREEN ---------- */
+  .done-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; }
+  .done-wrap .big{ font-size:64px; }
+  .done-wrap p{ color:var(--ink-dim); font-size:14px; max-width:280px; line-height:1.5; }
+
+  ::-webkit-scrollbar{ display:none; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="brand">SAHA<span>.</span></div>
+    <div class="tag">Evde · Ekipmansız · Süreli Devreler</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" id="tabWorkoutBtn" onclick="switchTab('workout')">ANTRENMAN</button>
+  <button class="tab-btn" id="tabFoodBtn" onclick="switchTab('food')">BESLENME</button>
+</div>
+
+<div class="view active" id="viewWorkout">
+  <div class="stats">
+    <div class="stat"><div class="num mono" id="statStreak">0</div><div class="lbl">Gün Serisi</div></div>
+    <div class="stat"><div class="num mono" id="statTotal">0</div><div class="lbl">Toplam</div></div>
+    <div class="stat"><div class="num mono" id="statWeek">0/7</div><div class="lbl">Bu Hafta</div></div>
+  </div>
+
+  <div class="section-lbl"><span>7 Günlük Program</span><span id="loadingTag" style="opacity:0.5">yükleniyor…</span></div>
+  <div class="days" id="daysList"></div>
+
+  <div class="note"><b>Not:</b> Program günlük olarak değişir; her gün farklı bir odak (tam vücut, üst/alt vücut, core, kondisyon, toparlanma) çalışır. Görünür sonuç için tutarlılık, yeterli protein alımı, uyku ve genel kalori dengesi antrenman kadar belirleyicidir. İstediğin günü istediğin sırayla da yapabilirsin, program seni kısıtlamaz.</div>
+</div>
+
+<div class="view" id="viewFood">
+  <div class="section-lbl"><span>Günün Beslenme Hedefi</span><span id="dayTypeTag"></span></div>
+  <div class="macro-card">
+    <div class="macro-head">
+      <div class="kcal mono" id="kcalTarget">—<small> kcal</small></div>
+      <div class="day-type-pill" id="dayTypePill">ANTRENMAN GÜNÜ</div>
+    </div>
+    <div class="macro-bars">
+      <div class="macro-item p"><div class="mv mono" id="pTarget">—g</div><div class="ml">Protein</div></div>
+      <div class="macro-item c"><div class="mv mono" id="cTarget">—g</div><div class="ml">Karbonhidrat</div></div>
+      <div class="macro-item f"><div class="mv mono" id="fTarget">—g</div><div class="ml">Yağ</div></div>
+    </div>
+  </div>
+
+  <div class="section-lbl"><span>Et & Salata Ağırlıklı Öğün Planı</span></div>
+  <div class="meals" id="mealsList"></div>
+
+  <div class="note"><b>Nasıl hesaplandı:</b> 180cm / 84kg / 36-45 yaş / masa başı yaşam tarzına göre Mifflin-St Jeor formülüyle bazal metabolizma hesaplanıp, antrenman günlerinde ekstra harcama eklendi ve yağ kaybı için ortalama ~500 kcal açık uygulandı. Plan senin gerçek düzenine göre <b>2 öğüne</b> ayrıldı: 11:00-12:30 arası kahvaltı, 17:30-19:00 arası akşam yemeği, arada ekstra bir şey yok. Bu iki öğün büyük tutuldu ki gün boyu tok kalabilesin. Bunlar tıbbi değil pratik tahminlerdir — ilk 2-3 hafta kilonu takip et, beklenenden hızlı/yavaş değişiyorsa hedefi 100-150 kcal oynat. Kronik bir rahatsızlığın varsa veya çok düşük kalorili bir plana geçmek istersen bir diyetisyene danış.</div>
+</div>
+
+<!-- WORKOUT SCREEN -->
+<div class="screen" id="workoutScreen">
+  <div class="w-head">
+    <button class="close-btn" onclick="exitWorkout()">✕</button>
+    <div class="w-title" id="wDayTitle">GÜN 1</div>
+    <div class="round-pill mono" id="wRound">Tur 1/3</div>
+  </div>
+
+  <div class="ring-wrap" id="ringWrap">
+    <div class="ring-box">
+      <svg viewBox="0 0 120 120">
+        <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+        <circle class="ring-fg" id="ringFg" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="0"></circle>
+      </svg>
+      <div class="ring-center">
+        <div class="phase-lbl" id="phaseLbl">ÇALIŞMA</div>
+        <div class="time-num mono" id="timeNum">40</div>
+      </div>
+    </div>
+    <div class="ex-name" id="exName">Jumping Jack</div>
+    <div class="ex-next">Sıradaki: <b id="exNext">Squat</b></div>
+  </div>
+
+  <div class="w-controls">
+    <button class="btn btn-ghost" onclick="skipPhase()">İleri Al</button>
+    <button class="btn btn-main" id="pauseBtn" onclick="togglePause()">DURAKLAT</button>
+  </div>
+</div>
+
+<!-- DONE SCREEN -->
+<div class="screen" id="doneScreen">
+  <div class="done-wrap">
+    <div class="big">✓</div>
+    <h2 style="font-size:36px;">ANTRENMAN TAMAM</h2>
+    <p id="doneText">Bugünkü seansı bitirdin. Devam et, sonuçlar süreklilikte gizli.</p>
+    <button class="btn btn-main" style="max-width:200px; margin-top:10px;" onclick="exitWorkout()">Ana Ekrana Dön</button>
+  </div>
+</div>
+
+<script>
+/* ---------------- DATA ---------------- */
+const PROGRAM = [
+  { title:"Tam Vücut HIIT", focus:"Tüm vücut · Yağ yakım", warmup:"60sn hafif zıplama + kol/bacak açma",
+    rounds:4, work:40, rest:20,
+    exercises:["Jumping Jack","Vücut Ağırlığı Squat","Şınav (diz üstü opsiyonel)","Mountain Climber","Plank","Yerinde Yüksek Diz Koşusu"] },
+  { title:"Üst Vücut", focus:"Göğüs · Sırt · Omuz", warmup:"45sn kol çevirme + omuz açma",
+    rounds:3, work:45, rest:15,
+    exercises:["Şınav","Pike Push-up (omuz)","Superman (sırt)","Dar Tutuş Şınav","Ters Plank","Plank'tan Şınava Geçiş"] },
+  { title:"Core & Kondisyon", focus:"Karın · Kalp-damar", warmup:"30sn hafif koşu + gövde dönüşü",
+    rounds:4, work:30, rest:15,
+    exercises:["Bisiklet Crunch","Russian Twist","Bacak Kaldırma (Leg Raise)","Plank Jack","Burpee","Yerinde Yüksek Diz Koşusu"] },
+  { title:"Alt Vücut", focus:"Bacak · Kalça", warmup:"45sn hafif squat + bacak sallama",
+    rounds:4, work:40, rest:20,
+    exercises:["Squat","Alternatif Lunge","Kalça Köprüsü (Glute Bridge)","Sumo Squat","Calf Raise (Baldır)","Wall Sit"] },
+  { title:"Tam Vücut Kuvvet", focus:"Genel güç", warmup:"45sn eklem hareketleri",
+    rounds:3, work:45, rest:15,
+    exercises:["Şınav","Squat","Plank","Alternatif Lunge","Superman","Burpee"] },
+  { title:"Tabata Kondisyon", focus:"Yüksek yoğunluk", warmup:"30sn hafif zıplama",
+    rounds:8, work:20, rest:10,
+    exercises:["Burpee","Jumping Jack","Yüksek Diz Koşusu","Mountain Climber"] },
+  { title:"Aktif Toparlanma", focus:"Esneme · Mobilite", warmup:"",
+    rounds:1, work:45, rest:10,
+    exercises:["Boyun ve Omuz Esnetme","Kalça Açıcı (Hip Opener)","Hamstring Esnetme","Kelebek Esnetme (Butterfly Stretch)","Kedi-Deve (Cat-Cow)","Derin Nefes + Gövde Uzatma"] },
+];
+const DAY_LABELS = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"];
+
+/* ---------------- NUTRITION DATA ----------------
+   180cm / 84kg / 36-45 yaş / masa başı yaşam tarzı.
+   Mifflin-St Jeor BMR ≈ 1770 kcal → sedanter TDEE ≈ 2125 kcal.
+   Antrenman günü: + egzersiz harcaması, ~500 kcal açıkla ≈ 1950 kcal.
+   Toparlanma/dinlenme günü: ~500 kcal açıkla ≈ 1650 kcal.
+   Protein hedefi ~2g/kg (yağsız kütleyi korumak için yüksek tutuldu). */
+const NUTRITION = {
+  training: {
+    label: "ANTRENMAN GÜNÜ", kcal: 1950, protein: 175, carbs: 185, fat: 58,
+    meals: [
+      { time:"11:00 – 12:30", name:"Kahvaltı (Brunch)", kcal:1000,
+        items:["4 yumurta (omlet/menemen)","100g dana pastırma veya hindi füme","100g lor peyniri","60g yulaf ezmesi veya 1.5 dilim tam tahıllı ekmek","Domates, salatalık, roka, 1 yemek kaşığı zeytinyağı"] },
+      { time:"17:30 – 19:00", name:"Akşam Yemeği", kcal:950,
+        items:["220g ızgara kırmızı et (dana bonfile) veya somon","150g haşlanmış bulgur veya pirinç","Büyük yeşil salata + zeytinyağı","200g süzme yoğurt"] },
+    ]
+  },
+  rest: {
+    label: "TOPARLANMA GÜNÜ", kcal: 1650, protein: 165, carbs: 130, fat: 50,
+    meals: [
+      { time:"11:00 – 12:30", name:"Kahvaltı (Brunch)", kcal:850,
+        items:["4 yumurta","Yarım avokado","80g lor peyniri","Domates, salatalık, roka"] },
+      { time:"17:30 – 19:00", name:"Akşam Yemeği", kcal:800,
+        items:["200g ızgara tavuk, balık veya kırmızı et","Fırında/ızgara sebze + büyük salata","60-80g bulgur (opsiyonel, az miktarda)","150g süzme yoğurt"] },
+    ]
+  }
+};
+// Gün 7 (indeks 6, Aktif Toparlanma) = dinlenme profili, diğer 6 gün = antrenman profili
+function nutritionProfileFor(dayIndex){ return dayIndex === 6 ? NUTRITION.rest : NUTRITION.training; }
+
+function renderNutrition(){
+  const profile = nutritionProfileFor(todayIdx);
+  document.getElementById('kcalTarget').innerHTML = profile.kcal + '<small> kcal</small>';
+  document.getElementById('dayTypePill').textContent = profile.label;
+  document.getElementById('pTarget').textContent = profile.protein + 'g';
+  document.getElementById('cTarget').textContent = profile.carbs + 'g';
+  document.getElementById('fTarget').textContent = profile.fat + 'g';
+
+  const wrap = document.getElementById('mealsList');
+  wrap.innerHTML = '';
+  profile.meals.forEach(m=>{
+    const card = document.createElement('div');
+    card.className = 'meal-card';
+    card.innerHTML = `
+      <div class="meal-head">
+        <span class="meal-time">${m.time}</span>
+        <span class="meal-kcal">${m.kcal} kcal</span>
+      </div>
+      <div class="meal-name">${m.name}</div>
+      <div class="meal-items">${m.items.join(' · ')}</div>
+    `;
+    wrap.appendChild(card);
+  });
+}
+
+function switchTab(tab){
+  document.getElementById('viewWorkout').classList.toggle('active', tab==='workout');
+  document.getElementById('viewFood').classList.toggle('active', tab==='food');
+  document.getElementById('tabWorkoutBtn').classList.toggle('active', tab==='workout');
+  document.getElementById('tabFoodBtn').classList.toggle('active', tab==='food');
+}
+
+let state = { completedDates: [] }; // array of "YYYY-MM-DD|dayIndex"
+let session = null; // active workout runtime
+let timerHandle = null;
+
+const todayIdx = (new Date().getDay()+6)%7; // Monday=0
+const todayStr = new Date().toISOString().slice(0,10);
+
+/* ---------------- STORAGE ---------------- */
+async function loadState(){
+  document.getElementById('loadingTag').style.display='inline';
+  try{
+    const raw = localStorage.getItem('saha-completed-log');
+    state.completedDates = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    state.completedDates = [];
+  }
+  document.getElementById('loadingTag').style.display='none';
+  renderDays();
+  renderStats();
+}
+async function saveState(){
+  try{
+    localStorage.setItem('saha-completed-log', JSON.stringify(state.completedDates));
+  }catch(e){ console.error('Kayıt hatası', e); }
+}
+function markComplete(dayIndex){
+  const key = todayStr + "|" + dayIndex;
+  if(!state.completedDates.includes(key)){
+    state.completedDates.push(key);
+    saveState();
+  }
+  renderDays();
+  renderStats();
+}
+function isDoneToday(dayIndex){
+  return state.completedDates.includes(todayStr + "|" + dayIndex);
+}
+
+/* ---------------- RENDER ---------------- */
+function renderDays(){
+  const wrap = document.getElementById('daysList');
+  wrap.innerHTML = '';
+  PROGRAM.forEach((d, i)=>{
+    const done = isDoneToday(i);
+    const card = document.createElement('div');
+    card.className = 'day-card' + (i===todayIdx?' today':'') + (done?' done':'');
+    card.onclick = ()=> startWorkout(i);
+    card.innerHTML = `
+      <div class="day-num mono">${String(i+1).padStart(2,'0')}</div>
+      <div class="day-info">
+        <div class="day-title">${d.title}</div>
+        <div class="day-meta"><span>${d.focus}</span> · <b>${d.rounds} tur</b> · <span>${d.exercises.length} hareket</span></div>
+      </div>
+      ${i===todayIdx && !done ? '<div class="today-pill">Bugün</div>' : ''}
+      <div class="check">${done?'✓':''}</div>
+    `;
+    wrap.appendChild(card);
+  });
+}
+function renderStats(){
+  document.getElementById('statTotal').textContent = state.completedDates.length;
+  // week count: unique dates in current week's array intersect
+  const now = new Date();
+  const startOfWeek = new Date(now); startOfWeek.setDate(now.getDate()-((now.getDay()+6)%7)); startOfWeek.setHours(0,0,0,0);
+  const uniqueDatesThisWeek = new Set(state.completedDates
+    .map(k=>k.split('|')[0])
+    .filter(ds=> new Date(ds) >= startOfWeek));
+  document.getElementById('statWeek').textContent = uniqueDatesThisWeek.size + "/7";
+  // streak: consecutive days (any workout) ending today or yesterday
+  const uniqueDates = [...new Set(state.completedDates.map(k=>k.split('|')[0]))].sort();
+  let streak = 0;
+  let cursor = new Date();
+  for(let i=0;i<uniqueDates.length+1;i++){
+    const ds = cursor.toISOString().slice(0,10);
+    if(uniqueDates.includes(ds)){ streak++; cursor.setDate(cursor.getDate()-1); }
+    else break;
+  }
+  document.getElementById('statStreak').textContent = streak;
+}
+
+/* ---------------- WORKOUT ENGINE ---------------- */
+const CIRC = 2*Math.PI*52;
+
+function buildSequence(day){
+  // sequence of phases: [{type:'work'|'rest', label, exIndex}]
+  const seq = [];
+  for(let r=0; r<day.rounds; r++){
+    day.exercises.forEach((ex, idx)=>{
+      seq.push({type:'work', label:ex, round:r});
+      seq.push({type:'rest', label:'Dinlenme', round:r});
+    });
+  }
+  seq.pop(); // no trailing rest
+  return seq;
+}
+
+function startWorkout(dayIndex){
+  const day = PROGRAM[dayIndex];
+  const seq = buildSequence(day);
+  session = {
+    dayIndex, day, seq, pos: 0,
+    secondsLeft: seq[0].type==='work' ? day.work : day.rest,
+    paused: false,
+  };
+  document.getElementById('wDayTitle').textContent = 'GÜN ' + (dayIndex+1) + ' · ' + day.title.toUpperCase();
+  document.getElementById('workoutScreen').classList.add('active');
+  document.getElementById('doneScreen').classList.remove('active');
+  document.getElementById('pauseBtn').textContent = 'DURAKLAT';
+  document.getElementById('pauseBtn').classList.remove('pause');
+  renderTick();
+  if(timerHandle) clearInterval(timerHandle);
+  timerHandle = setInterval(tick, 1000);
+}
+
+function currentDayLabelInfo(){
+  const day = session.day;
+  const total = day.rounds;
+  const cur = session.seq[session.pos].round + 1;
+  document.getElementById('wRound').textContent = `Tur ${cur}/${total}`;
+}
+
+function renderTick(){
+  const phase = session.seq[session.pos];
+  const day = session.day;
+  const isWork = phase.type === 'work';
+  const total = isWork ? day.work : day.rest;
+  const pct = session.secondsLeft / total;
+
+  document.getElementById('timeNum').textContent = session.secondsLeft;
+  document.getElementById('phaseLbl').textContent = isWork ? 'ÇALIŞMA' : 'DİNLENME';
+  document.getElementById('phaseLbl').className = 'phase-lbl' + (isWork?'':' rest-mode');
+  document.getElementById('ringFg').className = 'ring-fg' + (isWork?'':' rest-mode');
+  document.getElementById('ringFg').style.strokeDasharray = CIRC;
+  document.getElementById('ringFg').style.strokeDashoffset = CIRC * (1-pct);
+  document.getElementById('exName').textContent = isWork ? phase.label : 'Nefes al, hazırlan';
+
+  const nextPhase = session.seq[session.pos+1];
+  document.getElementById('exNext').textContent = nextPhase ? (nextPhase.type==='work'? nextPhase.label : 'Dinlenme') : 'Bitiş';
+  currentDayLabelInfo();
+}
+
+function tick(){
+  if(session.paused) return;
+  session.secondsLeft--;
+  if(session.secondsLeft < 0){
+    session.pos++;
+    if(session.pos >= session.seq.length){
+      finishWorkout();
+      return;
+    }
+    const phase = session.seq[session.pos];
+    session.secondsLeft = phase.type==='work' ? session.day.work : session.day.rest;
+  }
+  renderTick();
+}
+
+function skipPhase(){
+  session.pos++;
+  if(session.pos >= session.seq.length){ finishWorkout(); return; }
+  const phase = session.seq[session.pos];
+  session.secondsLeft = phase.type==='work' ? session.day.work : session.day.rest;
+  renderTick();
+}
+
+function togglePause(){
+  session.paused = !session.paused;
+  const btn = document.getElementById('pauseBtn');
+  btn.textContent = session.paused ? 'DEVAM ET' : 'DURAKLAT';
+  btn.classList.toggle('pause', session.paused);
+}
+
+function finishWorkout(){
+  clearInterval(timerHandle);
+  document.getElementById('workoutScreen').classList.remove('active');
+  document.getElementById('doneScreen').classList.add('active');
+  markComplete(session.dayIndex);
+}
+
+function exitWorkout(){
+  if(timerHandle) clearInterval(timerHandle);
+  document.getElementById('workoutScreen').classList.remove('active');
+  document.getElementById('doneScreen').classList.remove('active');
+  session = null;
+}
+
+loadState();
+renderNutrition();
+</script>
+</body>
+</html>
