@@ -87,6 +87,16 @@
   .meal-name{ font-size:15px; font-weight:700; margin-bottom:4px; }
   .meal-items{ font-size:12.5px; color:var(--ink-dim); line-height:1.6; }
 
+  /* ---------- MOVES GUIDE ---------- */
+  .move-card{ background:var(--surface); border:1px solid var(--line); border-radius:12px; margin-bottom:8px; overflow:hidden; }
+  .move-card summary{ padding:14px 16px; font-size:15px; font-weight:700; cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center; }
+  .move-card summary::-webkit-details-marker{ display:none; }
+  .move-card summary::after{ content:'+'; color:var(--accent); font-family:'Bebas Neue'; font-size:22px; flex-shrink:0; margin-left:10px; }
+  .move-card[open] summary::after{ content:'–'; }
+  .move-body{ padding:0 16px 16px; font-size:13px; color:var(--ink-dim); line-height:1.65; border-top:1px solid var(--line); padding-top:12px; }
+  .move-search{ width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-family:'Inter'; font-size:14px; margin-bottom:14px; }
+  .move-search::placeholder{ color:var(--ink-dim); }
+
   /* ---------- WORKOUT SCREEN ---------- */
   .screen{ position:fixed; inset:0; background:var(--bg); z-index:50; display:none; flex-direction:column; padding: env(safe-area-inset-top,16px) 18px calc(env(safe-area-inset-bottom,16px) + 16px); }
   .screen.active{ display:flex; }
@@ -95,8 +105,8 @@
   .w-title{ font-size:13px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.12em; }
   .round-pill{ font-size:11px; color:var(--ink); background:var(--surface); border:1px solid var(--line); padding:5px 10px; border-radius:20px; }
 
-  .ring-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 22px; }
-  .ring-box{ position:relative; width:min(72vw,290px); height:min(72vw,290px); }
+  .ring-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 14px; overflow-y:auto; padding: 8px 0; }
+  .ring-box{ position:relative; width:min(56vw,220px); height:min(56vw,220px); }
   .ring-box svg{ width:100%; height:100%; transform: rotate(-90deg); }
   .ring-bg{ fill:none; stroke: var(--surface-2); stroke-width:10; }
   .ring-fg{ fill:none; stroke: var(--go); stroke-width:10; stroke-linecap:round; transition: stroke .2s; }
@@ -104,7 +114,15 @@
   .ring-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
   .phase-lbl{ font-size:12px; letter-spacing:0.2em; text-transform:uppercase; color: var(--go); font-weight:700; }
   .phase-lbl.rest-mode{ color: var(--rest); }
-  .time-num{ font-family:'Bebas Neue'; font-size:76px; line-height:1; margin-top:2px; }
+  .time-num{ font-family:'Bebas Neue'; font-size:60px; line-height:1; margin-top:2px; }
+
+  /* ---------- FIGURE ANIMATION (SVG skeleton, generated per exercise) ---------- */
+  .figure-stage{ width:120px; height:130px; flex-shrink:0; }
+  .figure-stage svg{ width:100%; height:100%; overflow:visible; }
+  .fig-pulse{ animation: figPulse 2s ease-in-out infinite; }
+  @keyframes figPulse{ 0%,100%{opacity:1;} 50%{opacity:0.55;} }
+
+  .ex-steps{ font-size:12.5px; color:var(--ink-dim); text-align:center; max-width:300px; line-height:1.5; min-height:36px; }
 
   .ex-name{ font-size: 30px; text-align:center; max-width:320px; line-height:1.05; }
   .ex-next{ font-size:13px; color:var(--ink-dim); text-align:center; }
@@ -136,6 +154,7 @@
 <div class="tabs">
   <button class="tab-btn active" id="tabWorkoutBtn" onclick="switchTab('workout')">ANTRENMAN</button>
   <button class="tab-btn" id="tabFoodBtn" onclick="switchTab('food')">BESLENME</button>
+  <button class="tab-btn" id="tabMovesBtn" onclick="switchTab('moves')">HAREKETLER</button>
 </div>
 
 <div class="view active" id="viewWorkout">
@@ -171,6 +190,12 @@
   <div class="note"><b>Nasıl hesaplandı:</b> 180cm / 84kg / 36-45 yaş / masa başı yaşam tarzına göre Mifflin-St Jeor formülüyle bazal metabolizma hesaplanıp, antrenman günlerinde ekstra harcama eklendi ve yağ kaybı için ortalama ~500 kcal açık uygulandı. Plan senin gerçek düzenine göre <b>2 öğüne</b> ayrıldı: 11:00-12:30 arası kahvaltı, 17:30-19:00 arası akşam yemeği, arada ekstra bir şey yok. Bu iki öğün büyük tutuldu ki gün boyu tok kalabilesin. Bunlar tıbbi değil pratik tahminlerdir — ilk 2-3 hafta kilonu takip et, beklenenden hızlı/yavaş değişiyorsa hedefi 100-150 kcal oynat. Kronik bir rahatsızlığın varsa veya çok düşük kalorili bir plana geçmek istersen bir diyetisyene danış.</div>
 </div>
 
+<div class="view" id="viewMoves">
+  <div class="section-lbl"><span>Hareket Rehberi</span></div>
+  <input class="move-search" id="moveSearch" type="text" placeholder="Hareket ara... (ör. şınav, plank)" oninput="renderMoves()">
+  <div id="movesList"></div>
+</div>
+
 <!-- WORKOUT SCREEN -->
 <div class="screen" id="workoutScreen">
   <div class="w-head">
@@ -180,6 +205,7 @@
   </div>
 
   <div class="ring-wrap" id="ringWrap">
+    <div class="figure-stage" id="figureStage"></div>
     <div class="ring-box">
       <svg viewBox="0 0 120 120">
         <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
@@ -191,6 +217,7 @@
       </div>
     </div>
     <div class="ex-name" id="exName">Jumping Jack</div>
+    <div class="ex-steps" id="exSteps"></div>
     <div class="ex-next">Sıradaki: <b id="exNext">Squat</b></div>
   </div>
 
@@ -294,8 +321,136 @@ function renderNutrition(){
 function switchTab(tab){
   document.getElementById('viewWorkout').classList.toggle('active', tab==='workout');
   document.getElementById('viewFood').classList.toggle('active', tab==='food');
+  document.getElementById('viewMoves').classList.toggle('active', tab==='moves');
   document.getElementById('tabWorkoutBtn').classList.toggle('active', tab==='workout');
   document.getElementById('tabFoodBtn').classList.toggle('active', tab==='food');
+  document.getElementById('tabMovesBtn').classList.toggle('active', tab==='moves');
+  if(tab==='moves') renderMoves();
+}
+
+/* ---------------- MOVES GUIDE DATA ---------------- */
+const MOVES = [
+  { name:"Jumping Jack", steps:"Ayaklar bitişik, kollar yanda başla. Zıplayıp bacakları yanlara aç, aynı anda kollarını yukarıda birleştir. Aynı hızla başlangıca dön. Tempolu ve kontrollü yap." },
+  { name:"Vücut Ağırlığı Squat", steps:"Ayaklar omuz genişliğinde, ayak uçları hafif dışa dönük. Kalçanı geriye iterek diz ve kalçadan bük, sandalyeye oturur gibi in. Dizler ayak ucunu geçmesin, sırt düz kalsın. Kalça diz hizasına inince topuklarla itip kalk." },
+  { name:"Şınav (diz üstü opsiyonel)", steps:"Eller omuz genişliğinde yerde, vücut baştan topuğa düz bir çizgi olsun. Dirsekleri gövdeye yakın açarak göğsü yere yaklaştır, sonra it. Zor geliyorsa dizlerini yere koyarak yap, form aynı kalsın." },
+  { name:"Mountain Climber", steps:"Yüksek plank (şınav) pozisyonunda başla. Dizlerini sırayla göğsüne doğru hızlıca çek, koşar gibi. Kalça yukarı kalkmasın, karnını sıkı tut." },
+  { name:"Plank", steps:"Dirsekler omuz altında, ayak uçları yerde, vücut baştan topuğa düz bir çizgi olsun. Kalça ne yukarı kalksın ne aşağı sarksın, karnını sıkarak pozisyonu koru." },
+  { name:"Yerinde Yüksek Diz Koşusu", steps:"Yerinde koşar gibi dizlerini sırayla kalça hizasına kadar hızlıca kaldır, kollar da karşı bacakla birlikte sallansın." },
+  { name:"Pike Push-up (omuz)", steps:"Şınav pozisyonundan kalçanı yukarı kaldırarak ters V (köpek pozisyonu) al. Başını ellerinin arasına doğru indirip tekrar kaldır — omuzları çalıştırır." },
+  { name:"Superman (sırt)", steps:"Yüzüstü yat, kollar öne uzanık. Kollarını ve bacaklarını aynı anda yerden birkaç santim kaldır, 2 saniye tut, kontrollü indir." },
+  { name:"Dar Tutuş Şınav", steps:"Normal şınav pozisyonunda ellerini göğüs hizasında, birbirine yakın koy. Dirsekler gövdeye yakın kalarak in-çık — triseplere yüklenir." },
+  { name:"Ters Plank", steps:"Otur, eller arkanda parmaklar öne bakacak şekilde yere koy. Kalçanı yukarı kaldırarak vücudunu düz bir çizgi haline getir, bacaklar uzanık kalsın." },
+  { name:"Plank'tan Şınava Geçiş", steps:"Önkol plank pozisyonundan başla, tek tek elini açarak yüksek plank (şınav) pozisyonuna geç, sonra tekrar önkol plank'a dön. Kalçan sabit kalsın, sallanma." },
+  { name:"Bisiklet Crunch", steps:"Sırtüstü yat, eller başının arkasında, dizler bükülü havada. Bir dirseğini karşı dizine değdirirken diğer bacağını uzat, bisiklet çevirir gibi sırayla değiştir." },
+  { name:"Russian Twist", steps:"Otur, dizler bükülü, üst gövdeni hafif geriye yasla. Ellerini (istersen kenetli) sağdan sola çevirerek gövdeni döndür. Zorlaştırmak istersen ayaklarını yerden kaldır." },
+  { name:"Bacak Kaldırma (Leg Raise)", steps:"Sırtüstü yat, bacaklar düz. Belini yere bastırarak bacaklarını düz bir şekilde yukarı kaldır, kontrollü indir, yere değdirmeden tekrar kaldır." },
+  { name:"Plank Jack", steps:"Yüksek plank pozisyonunda, ayaklarını zıplayarak yanlara aç-kapa — jumping jack'in plank versiyonu. Kalçan sabit kalsın." },
+  { name:"Burpee", steps:"Ayakta başla, çömel, ellerini yere koy. Ayaklarını geriye atarak plank pozisyonuna geç (istersen bir şınav ekle), ayaklarını tekrar öne çek, ayağa kalkıp zıpla. Tempo senin elinde, gerekirse zıplamayı atla." },
+  { name:"Alternatif Lunge", steps:"Ayakta dur, bir ayağınla öne uzun adım at, arka diz yere yakın inecek şekilde iki dizini de yaklaşık 90 dereceye kadar bük. Öndeki topukla itip başlangıca dön, diğer bacakla tekrarla." },
+  { name:"Kalça Köprüsü (Glute Bridge)", steps:"Sırtüstü yat, dizler bükülü, ayak tabanları yerde. Kalçanı yukarı iterek omuzdan dize düz bir çizgi oluştur, tepede sık, kontrollü in." },
+  { name:"Sumo Squat", steps:"Ayaklarını normal squat'tan daha geniş aç, ayak uçları dışa dönük. Kalçanı düz aşağı indir — iç bacak ve kalçaya yüklenir." },
+  { name:"Calf Raise (Baldır)", steps:"Ayakta dur (istersen dengeni bir yere tutunarak sağla). Topuklarını yerden kaldırıp parmak ucunda yüksel, tepede kısa tut, kontrollü in." },
+  { name:"Wall Sit", steps:"Sırtını duvara yasla, dizlerin 90 derece olacağı, sandalyede oturur gibi bir pozisyona çök. Süre boyunca hareket etmeden o pozisyonda kal." },
+  { name:"Boyun ve Omuz Esnetme", steps:"Başını yavaşça yana ve öne eğerek boyun kaslarını gerin. Omuzlarını öne-arkaya, yukarı-aşağı yavaşça çevir." },
+  { name:"Kalça Açıcı (Hip Opener)", steps:"Otururken veya ayaktayken bir ayak bileğini diğer dizinin üstüne koy (rakam 4 şekli), üst gövdeni hafif öne eğerek kalçayı gerin." },
+  { name:"Hamstring Esnetme", steps:"Ayakta veya otururken bacaklarını uzatıp öne doğru eğilerek arka bacak kaslarını gerin, dizlerini kilitleme." },
+  { name:"Kelebek Esnetme (Butterfly Stretch)", steps:"Otur, ayak tabanlarını birleştir, dizlerini yanlara aç. Dizlerini hafifçe yere doğru bastırarak iç bacağı gerin." },
+  { name:"Kedi-Deve (Cat-Cow)", steps:"Dört ayak pozisyonunda, nefes verirken sırtını yukarı kamburlaştır (kedi), nefes alırken belini çukurlaştırıp başını kaldır (deve). Akıcı şekilde tekrarla." },
+  { name:"Derin Nefes + Gövde Uzatma", steps:"Ayakta veya otururken kollarını yukarı uzatıp derin nefes al, gövdeni hafifçe yana esnet. Sakinleştirici bir bitiriş hareketi olarak yavaş yap." },
+];
+
+function renderMoves(){
+  const q = (document.getElementById('moveSearch').value || '').toLocaleLowerCase('tr');
+  const wrap = document.getElementById('movesList');
+  wrap.innerHTML = '';
+  MOVES.filter(m => m.name.toLocaleLowerCase('tr').includes(q)).forEach(m=>{
+    const el = document.createElement('details');
+    el.className = 'move-card';
+    el.innerHTML = `<summary>${m.name}</summary><div class="move-body">${m.steps}</div>`;
+    wrap.appendChild(el);
+  });
+}
+
+const MOVES_MAP = {};
+MOVES.forEach(m => MOVES_MAP[m.name] = m.steps);
+
+const FIGURE_TYPE = {
+  "Jumping Jack":"jumpingjack", "Burpee":"jumpingjack",
+  "Mountain Climber":"mountainclimber",
+  "Yerinde Yüksek Diz Koşusu":"highknees",
+  "Plank Jack":"plankjack",
+  "Vücut Ağırlığı Squat":"squat", "Sumo Squat":"squat",
+  "Calf Raise (Baldır)":"calfraise",
+  "Alternatif Lunge":"lunge",
+  "Şınav (diz üstü opsiyonel)":"pushup", "Pike Push-up (omuz)":"pushup",
+  "Dar Tutuş Şınav":"pushup", "Plank'tan Şınava Geçiş":"pushup",
+  "Bisiklet Crunch":"twist", "Russian Twist":"twist",
+  "Bacak Kaldırma (Leg Raise)":"lyinglegraise",
+  "Kalça Köprüsü (Glute Bridge)":"glutebridge",
+  "Superman (sırt)":"superman",
+  "Plank":"plank", "Ters Plank":"reverseplank", "Wall Sit":"wallsit",
+  "Boyun ve Omuz Esnetme":"stretch", "Kalça Açıcı (Hip Opener)":"stretch",
+  "Hamstring Esnetme":"stretch", "Kelebek Esnetme (Butterfly Stretch)":"stretch",
+  "Kedi-Deve (Cat-Cow)":"stretch", "Derin Nefes + Gövde Uzatma":"stretch",
+};
+
+const TYPE_CFG = {
+  squat:{ bodyTranslate:{values:"0,0;0,13;0,0",dur:"1.1s"}, armL:{values:"0;-35;0",dur:"1.1s"}, armR:{values:"0;35;0",dur:"1.1s"}, legL:{values:"0;-22;0",dur:"1.1s"}, legR:{values:"0;22;0",dur:"1.1s"} },
+  lunge:{ bodyTranslate:{values:"0,0;0,9;0,0",dur:"1.4s"}, armL:{values:"0;-18;0",dur:"1.4s"}, armR:{values:"0;18;0",dur:"1.4s"}, legL:{values:"0;-50;0",dur:"1.4s"}, legR:{values:"0;16;0",dur:"1.4s"} },
+  pushup:{ rotate:75, bodyTranslate:{values:"0,0;0,11;0,0",dur:"0.9s"}, armL:{values:"0;-18;0",dur:"0.9s"}, armR:{values:"0;18;0",dur:"0.9s"} },
+  jumpingjack:{ bodyTranslate:{values:"0,0;0,-8;0,0",dur:"0.55s"}, armL:{values:"0;-165;0",dur:"0.55s"}, armR:{values:"0;165;0",dur:"0.55s"}, legL:{values:"0;-26;0",dur:"0.55s"}, legR:{values:"0;26;0",dur:"0.55s"} },
+  mountainclimber:{ rotate:75, legL:{values:"0;-75;0",dur:"0.5s",begin:"0s"}, legR:{values:"0;-75;0",dur:"0.5s",begin:"0.25s"} },
+  highknees:{ bodyTranslate:{values:"0,0;0,-6;0,0",dur:"0.5s"}, legL:{values:"0;-72;0",dur:"0.5s",begin:"0s"}, legR:{values:"0;-72;0",dur:"0.5s",begin:"0.25s"}, armL:{values:"0;42;0",dur:"0.5s",begin:"0.25s"}, armR:{values:"0;-42;0",dur:"0.5s",begin:"0s"} },
+  plankjack:{ rotate:75, legL:{values:"0;-26;0",dur:"0.55s"}, legR:{values:"0;26;0",dur:"0.55s"} },
+  plank:{ rotate:75, pulse:true },
+  reverseplank:{ rotate:-75, pulse:true },
+  wallsit:{ pulse:true, bodyTranslate:{static:[0,20]}, legL:{static:-22}, legR:{static:22}, armL:{static:-12}, armR:{static:12} },
+  lyinglegraise:{ rotate:90, legL:{values:"0;-45;0",dur:"1.3s"}, legR:{values:"0;-45;0",dur:"1.3s"} },
+  glutebridge:{ rotate:90, bodyTranslate:{values:"0,0;0,-16;0,0",dur:"1.3s"} },
+  superman:{ rotate:90, bodyTranslate:{values:"0,0;0,-8;0,0",dur:"1.3s"}, armL:{values:"0;-25;0",dur:"1.3s"}, armR:{values:"0;25;0",dur:"1.3s"}, legL:{values:"0;-18;0",dur:"1.3s"}, legR:{values:"0;18;0",dur:"1.3s"} },
+  twist:{ bodyRotate:{values:"-18 60 68;18 60 68;-18 60 68",dur:"1s"}, legL:{static:-14}, legR:{static:14} },
+  calfraise:{ bodyTranslate:{values:"0,0;0,-9;0,0",dur:"0.8s"} },
+  stretch:{ bodyRotate:{values:"-8 60 68;8 60 68;-8 60 68",dur:"2.6s"}, armL:{static:-150}, armR:{static:150} },
+};
+
+function limbSVG(px, py, len, limb){
+  let inner;
+  if(limb && limb.values){
+    inner = `<g><animateTransform attributeName="transform" type="rotate" values="${limb.values}" dur="${limb.dur||'1.1s'}" begin="${limb.begin||'0s'}" repeatCount="indefinite"/><line x1="0" y1="0" x2="0" y2="${len}" stroke="var(--ink)" stroke-width="8" stroke-linecap="round"/></g>`;
+  } else {
+    const deg = (limb && limb.static) || 0;
+    inner = `<g transform="rotate(${deg})"><line x1="0" y1="0" x2="0" y2="${len}" stroke="var(--ink)" stroke-width="8" stroke-linecap="round"/></g>`;
+  }
+  return `<g transform="translate(${px},${py})">${inner}</g>`;
+}
+
+function buildFigureSVG(cfg){
+  const btAnim = cfg.bodyTranslate && cfg.bodyTranslate.values
+    ? `<animateTransform attributeName="transform" type="translate" values="${cfg.bodyTranslate.values}" dur="${cfg.bodyTranslate.dur||'1.1s'}" repeatCount="indefinite"/>` : '';
+  const btStatic = (cfg.bodyTranslate && cfg.bodyTranslate.static) ? `translate(${cfg.bodyTranslate.static[0]},${cfg.bodyTranslate.static[1]})` : '';
+  const brAnim = cfg.bodyRotate
+    ? `<animateTransform attributeName="transform" type="rotate" values="${cfg.bodyRotate.values}" dur="${cfg.bodyRotate.dur||'1.1s'}" repeatCount="indefinite"/>` : '';
+
+  const skeleton = [
+    `<circle cx="60" cy="18" r="10" fill="var(--go)"/>`,
+    `<line x1="60" y1="28" x2="60" y2="68" stroke="var(--ink)" stroke-width="9" stroke-linecap="round"/>`,
+    limbSVG(50,32,28, cfg.armL),
+    limbSVG(70,32,28, cfg.armR),
+    limbSVG(53,68,46, cfg.legL),
+    limbSVG(67,68,46, cfg.legR),
+  ].join('');
+
+  const bodyGroup = `<g transform="${btStatic}">${btAnim}<g>${brAnim}${skeleton}</g></g>`;
+  const wrapped = cfg.rotate ? `<g transform="rotate(${cfg.rotate},60,68)">${bodyGroup}</g>` : bodyGroup;
+  const pulseAttr = cfg.pulse ? ' class="fig-pulse"' : '';
+  return `<svg viewBox="-15 -18 150 155"${pulseAttr}>${wrapped}</svg>`;
+}
+
+function setFigure(exerciseName){
+  const stage = document.getElementById('figureStage');
+  const type = FIGURE_TYPE[exerciseName];
+  const cfg = TYPE_CFG[type] || TYPE_CFG.stretch;
+  stage.innerHTML = buildFigureSVG(cfg);
 }
 
 let state = { completedDates: [] }; // array of "YYYY-MM-DD|dayIndex"
@@ -433,6 +588,8 @@ function renderTick(){
   document.getElementById('ringFg').style.strokeDasharray = CIRC;
   document.getElementById('ringFg').style.strokeDashoffset = CIRC * (1-pct);
   document.getElementById('exName').textContent = isWork ? phase.label : 'Nefes al, hazırlan';
+  document.getElementById('exSteps').textContent = isWork ? (MOVES_MAP[phase.label] || '') : 'Nefes al, suyunu iç, sıradaki harekete hazırlan.';
+  if(isWork){ setFigure(phase.label); } else { document.getElementById('figureStage').innerHTML = buildFigureSVG(TYPE_CFG.stretch); }
 
   const nextPhase = session.seq[session.pos+1];
   document.getElementById('exNext').textContent = nextPhase ? (nextPhase.type==='work'? nextPhase.label : 'Dinlenme') : 'Bitiş';
